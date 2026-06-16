@@ -1,0 +1,1819 @@
+<!DOCTYPE html>
+<html lang="es">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Zone War – Editor de Mapas 3D</title>
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    body {
+      background: #0a0a0f;
+      font-family: 'Courier New', monospace;
+      color: #ccc;
+      display: flex;
+      height: 100vh;
+      overflow: hidden;
+    }
+
+    /* ═══════ SIDEBAR ═══════ */
+    #sidebar {
+      width: 300px;
+      min-width: 300px;
+      background: #0d1117;
+      border-right: 1px solid #1a1a2e;
+      display: flex;
+      flex-direction: column;
+      overflow-y: auto;
+      z-index: 100;
+    }
+
+    .panel {
+      padding: 14px 16px;
+      border-bottom: 1px solid #1a1a2e;
+    }
+
+    .panel-title {
+      color: #ff4444;
+      font-size: 11px;
+      letter-spacing: 3px;
+      text-transform: uppercase;
+      margin-bottom: 10px;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .panel-title::before {
+      content: '';
+      width: 3px;
+      height: 14px;
+      background: #ff4444;
+      border-radius: 2px;
+    }
+
+    #header {
+      padding: 18px 16px;
+      border-bottom: 1px solid #ff444433;
+      background: linear-gradient(180deg, rgba(255, 68, 68, .06) 0%, transparent 100%);
+    }
+
+    #header h1 {
+      font-size: 1.2em;
+      color: #ff4444;
+      letter-spacing: 4px;
+      text-transform: uppercase;
+      text-shadow: 0 0 20px #ff000044;
+    }
+
+    #header p {
+      color: #556;
+      font-size: .7em;
+      letter-spacing: 2px;
+      margin-top: 4px;
+    }
+
+    .row {
+      display: flex;
+      gap: 8px;
+      align-items: center;
+      margin-bottom: 6px;
+    }
+
+    .row label {
+      color: #888;
+      font-size: 10px;
+      letter-spacing: 1px;
+      text-transform: uppercase;
+      min-width: 48px;
+    }
+
+    .row input,
+    .row select {
+      flex: 1;
+      background: #111;
+      border: 1px solid #333;
+      border-radius: 4px;
+      padding: 5px 8px;
+      color: #fff;
+      font-family: 'Courier New', monospace;
+      font-size: 12px;
+      outline: none;
+      transition: border-color .2s;
+    }
+
+    .row input:focus {
+      border-color: #ff4444;
+    }
+
+    input[type="color"] {
+      width: 28px;
+      height: 28px;
+      border: none;
+      padding: 0;
+      background: none;
+      cursor: pointer;
+      border-radius: 4px;
+      flex: 0;
+    }
+
+    .btn {
+      width: 100%;
+      padding: 9px;
+      border: none;
+      border-radius: 6px;
+      font-family: 'Courier New', monospace;
+      font-size: 11px;
+      letter-spacing: 2px;
+      text-transform: uppercase;
+      cursor: pointer;
+      transition: all .2s;
+      margin-top: 5px;
+    }
+
+    .btn-primary {
+      background: linear-gradient(135deg, #ff2222, #cc0000);
+      color: #fff;
+    }
+
+    .btn-primary:hover {
+      box-shadow: 0 0 30px #ff000044;
+      transform: translateY(-1px);
+    }
+
+    .btn-success {
+      background: linear-gradient(135deg, #22aa44, #118833);
+      color: #fff;
+    }
+
+    .btn-success:hover {
+      box-shadow: 0 0 30px #00ff0033;
+      transform: translateY(-1px);
+    }
+
+    .btn-secondary {
+      background: rgba(255, 255, 255, .05);
+      color: #aaa;
+      border: 1px solid #333;
+    }
+
+    .btn-secondary:hover {
+      background: rgba(255, 255, 255, .1);
+      color: #fff;
+    }
+
+    .btn-danger {
+      background: rgba(255, 0, 0, .1);
+      color: #ff6666;
+      border: 1px solid #ff444433;
+    }
+
+    .btn-danger:hover {
+      background: rgba(255, 0, 0, .2);
+    }
+
+    /* Toggle mode */
+    .toggle-row {
+      display: flex;
+      gap: 4px;
+      margin-top: 10px;
+    }
+
+    .toggle-btn {
+      flex: 1;
+      padding: 7px;
+      border-radius: 4px;
+      background: rgba(255, 255, 255, .04);
+      border: 1px solid #333;
+      color: #888;
+      font-family: 'Courier New', monospace;
+      font-size: 10px;
+      letter-spacing: 1px;
+      text-transform: uppercase;
+      cursor: pointer;
+      transition: all .15s;
+      text-align: center;
+    }
+
+    .toggle-btn:hover {
+      border-color: #ff4444;
+      color: #ccc;
+    }
+
+    .toggle-btn.active {
+      background: rgba(255, 68, 68, .15);
+      border-color: #ff4444;
+      color: #ff4444;
+      box-shadow: 0 0 10px #ff444422;
+    }
+
+    .presets {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 4px;
+      margin-bottom: 8px;
+    }
+
+    .preset-btn {
+      background: rgba(255, 255, 255, .05);
+      border: 1px solid #333;
+      border-radius: 4px;
+      padding: 3px 7px;
+      color: #aaa;
+      font-family: 'Courier New', monospace;
+      font-size: 10px;
+      cursor: pointer;
+      transition: all .15s;
+    }
+
+    .preset-btn:hover {
+      border-color: #ff4444;
+      color: #ff4444;
+    }
+
+    .preset-btn.active {
+      border-color: #ff4444;
+      color: #ff4444;
+      background: rgba(255, 68, 68, .12);
+    }
+
+    .color-presets {
+      display: flex;
+      gap: 4px;
+      flex-wrap: wrap;
+      margin-top: 4px;
+    }
+
+    .cpre {
+      width: 22px;
+      height: 22px;
+      border-radius: 4px;
+      border: 2px solid transparent;
+      cursor: pointer;
+      transition: all .15s;
+    }
+
+    .cpre:hover {
+      transform: scale(1.15);
+    }
+
+    .cpre.active {
+      border-color: #fff;
+    }
+
+    #statusBar {
+      padding: 8px 16px;
+      background: #080810;
+      border-top: 1px solid #1a1a2e;
+      font-size: 10px;
+      color: #556;
+      letter-spacing: 1px;
+      display: flex;
+      justify-content: space-between;
+      margin-top: auto;
+    }
+
+    .status-ok {
+      color: #44ff44;
+    }
+
+    /* ═══════ EMOTES LIST ═══════ */
+    .emote-item {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      background: rgba(255, 255, 255, 0.02);
+      border: 1px solid #1a1a2e;
+      border-radius: 4px;
+      padding: 6px 8px;
+      font-size: 11px;
+      margin-bottom: 4px;
+    }
+    .emote-item-icon {
+      width: 20px;
+      height: 20px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 14px;
+    }
+    .emote-item-icon img {
+      width: 100%;
+      height: 100%;
+      object-fit: contain;
+    }
+    .emote-item-info {
+      flex: 1;
+      min-width: 0;
+    }
+    .emote-item-name {
+      color: #fff;
+      font-weight: bold;
+      text-overflow: ellipsis;
+      overflow: hidden;
+      white-space: nowrap;
+    }
+    .emote-item-video {
+      color: #667;
+      font-size: 9px;
+      text-overflow: ellipsis;
+      overflow: hidden;
+      white-space: nowrap;
+    }
+    .emote-item-actions {
+      display: flex;
+      gap: 4px;
+    }
+    .emote-btn-icon {
+      background: none;
+      border: none;
+      color: #888;
+      cursor: pointer;
+      padding: 2px 4px;
+      font-size: 10px;
+      border-radius: 2px;
+    }
+    .emote-btn-icon:hover {
+      color: #ff4444;
+      background: rgba(255, 68, 68, 0.1);
+    }
+
+    /* ═══════ 3D AREA ═══════ */
+    #editorArea {
+      flex: 1;
+      position: relative;
+      overflow: hidden;
+      cursor: crosshair;
+    }
+
+    #editorArea canvas {
+      display: block;
+      width: 100%;
+      height: 100%;
+    }
+
+    /* Lock overlay */
+    #lockOverlay {
+      position: absolute;
+      inset: 0;
+      background: rgba(0, 0, 0, .7);
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      z-index: 50;
+      cursor: pointer;
+      flex-direction: column;
+      gap: 12px;
+    }
+
+    #lockOverlay p {
+      color: #fff;
+      font-size: 1.1em;
+      letter-spacing: 3px;
+      text-transform: uppercase;
+      animation: blink 1.5s ease-in-out infinite;
+    }
+
+    #lockOverlay .sub {
+      color: #888;
+      font-size: .7em;
+      letter-spacing: 2px;
+    }
+
+    @keyframes blink {
+
+      0%,
+      100% {
+        opacity: 1
+      }
+
+      50% {
+        opacity: .3
+      }
+    }
+
+    /* Crosshair */
+    #crosshair {
+      position: absolute;
+      left: 50%;
+      top: 50%;
+      transform: translate(-50%, -50%);
+      color: rgba(255, 255, 255, .9);
+      font-size: 22px;
+      pointer-events: none;
+      z-index: 10;
+      text-shadow: 0 0 4px black;
+    }
+
+    /* HUD */
+    #editorHud {
+      position: absolute;
+      bottom: 14px;
+      left: 50%;
+      transform: translateX(-50%);
+      background: rgba(0, 0, 0, .65);
+      border: 1px solid #ff444433;
+      border-radius: 8px;
+      padding: 8px 16px;
+      color: #aaa;
+      font-size: 10px;
+      letter-spacing: 1px;
+      pointer-events: none;
+      z-index: 10;
+      white-space: nowrap;
+    }
+
+    #editorHud span {
+      color: #ff4444;
+    }
+
+    /* Ghost block indicator */
+    #ghostInfo {
+      position: absolute;
+      top: 12px;
+      left: 50%;
+      transform: translateX(-50%);
+      background: rgba(0, 0, 0, .65);
+      border: 1px solid #ffffff22;
+      border-radius: 6px;
+      padding: 6px 14px;
+      color: #ccc;
+      font-size: 11px;
+      letter-spacing: 1px;
+      pointer-events: none;
+      z-index: 10;
+    }
+  </style>
+</head>
+
+<body>
+
+  <div id="sidebar">
+    <div id="header">
+      <h1>⚔ MAP EDITOR</h1>
+      <p>ZONE WAR — 3D</p>
+    </div>
+
+    <div class="panel">
+      <div class="panel-title">Mapa activo</div>
+      <div class="toggle-row" style="margin-top: 0; display: grid; grid-template-columns: 1fr 1fr; gap: 4px;">
+        <button class="toggle-btn active" id="mapModeNormal" onclick="setMapMode('normal')">⚔ Normal</button>
+        <button class="toggle-btn" id="mapModeBR" onclick="setMapMode('br')">🪂 BR</button>
+        <button class="toggle-btn" id="mapModeLobby" onclick="setMapMode('lobby')">🏰 Lobby</button>
+        <button class="toggle-btn" id="mapModeRvB" onclick="setMapMode('rvb')">🔴🔵 RvB</button>
+      </div>
+    </div>
+
+    <div class="panel">
+      <div class="panel-title">Piso</div>
+      <div class="presets" id="floorPresets">
+        <button class="preset-btn" data-w="10" data-d="10">10×10</button>
+        <button class="preset-btn" data-w="20" data-d="20">20×20</button>
+        <button class="preset-btn" data-w="50" data-d="50">50×50</button>
+        <button class="preset-btn active" data-w="100" data-d="100">100×100</button>
+        <button class="preset-btn" data-w="200" data-d="200">200×200</button>
+        <button class="preset-btn" data-w="500" data-d="500">500×500</button>
+      </div>
+      <div class="row">
+        <label>Ancho</label>
+        <input type="number" id="floorW" value="100" min="5" max="1000" step="5">
+      </div>
+      <div class="row">
+        <label>Largo</label>
+        <input type="number" id="floorD" value="100" min="5" max="1000" step="5">
+      </div>
+      <div class="row">
+        <label>Color</label>
+        <input type="color" id="floorColor" value="#4f9a45">
+      </div>
+      <button class="btn btn-secondary" onclick="applyFloor()">Aplicar piso</button>
+    </div>
+
+    <div class="panel">
+      <div class="panel-title">Bloque</div>
+      <div class="row">
+        <label>Tipo</label>
+        <select id="blockType" onchange="onBlockTypeChange()">
+          <option value="block">🧱 Bloque</option>
+          <option value="spawn_red">🔴 Spawn Red</option>
+          <option value="spawn_blue">🔵 Spawn Blue</option>
+          <option value="plane_start">✈️ Ruta Inicio</option>
+          <option value="plane_end">🛬 Ruta Fin</option>
+          <option value="airdrop_spawn">📦 Spawn Airdrop</option>
+        </select>
+      </div>
+      <div class="row">
+        <label>Ancho</label>
+        <input type="number" id="blockW" value="2" min="1" max="50" step="1">
+      </div>
+      <div class="row">
+        <label>Alto</label>
+        <input type="number" id="blockH" value="2" min="1" max="50" step="1">
+      </div>
+      <div class="row">
+        <label>Largo</label>
+        <input type="number" id="blockD" value="2" min="1" max="50" step="1">
+      </div>
+      <div class="row" id="collisionRow" style="display: flex; align-items: center; gap: 8px;">
+        <label for="blockCollision" style="cursor: pointer; flex: 1; min-width: auto;">Colisión</label>
+        <input type="checkbox" id="blockCollision" checked style="width: 16px; height: 16px; cursor: pointer; flex: 0;">
+      </div>
+      <div class="row">
+        <label>Color</label>
+        <input type="color" id="blockColor" value="#cc4444">
+      </div>
+      <div class="color-presets" id="colorPresets"></div>
+      <div class="toggle-row">
+        <button class="toggle-btn" id="modeSnap" onclick="setPlaceMode('snap')">📐 Snap</button>
+        <button class="toggle-btn active" id="modeFree" onclick="setPlaceMode('free')">🔓 Libre</button>
+      </div>
+    </div>
+
+    <div class="panel">
+      <div class="panel-title">Bloques (<span id="blockCount">0</span>)</div>
+      <button class="btn btn-danger" onclick="undoLast()">↩ Deshacer último</button>
+      <button class="btn btn-danger" onclick="clearAll()">🗑 Limpiar todo</button>
+    </div>
+
+    <div class="panel">
+      <div class="panel-title">Acciones</div>
+      <button class="btn btn-success" onclick="publishMap()">▲ PUBLICAR MAPA</button>
+      <button class="btn btn-secondary" onclick="loadMapFromFirebase()">🔄 Cargar de Firebase</button>
+      <button class="btn btn-secondary" onclick="exportJSON()">📋 Exportar JSON</button>
+      <button class="btn btn-secondary" onclick="importJSON()">📥 Importar JSON</button>
+    </div>
+
+    <div class="panel">
+      <div class="panel-title">Emotes del juego</div>
+      <div id="emotesList" style="max-height: 250px; overflow-y: auto; margin-bottom: 10px; display: flex; flex-direction: column; gap: 6px; padding-right: 4px;">
+        <div style="color: #667; font-size: 10px; text-align: center; padding: 10px 0;">Cargando emotes...</div>
+      </div>
+      <button class="btn btn-secondary" onclick="openEmoteForm()">+ Nuevo Emote</button>
+
+      <!-- Formulario de Emote -->
+      <div id="emoteForm" style="display: none; border-top: 1px solid #1a1a2e; margin-top: 10px; padding-top: 10px;">
+        <h3 style="font-size: 10px; text-transform: uppercase; color: #ff4444; margin-bottom: 8px;" id="emoteFormTitle">Nuevo Emote</h3>
+        <input type="hidden" id="emoteEditIndex" value="">
+        <div class="row">
+          <label>Nombre</label>
+          <input type="text" id="emoteName" placeholder="Ej: Baile Loco">
+        </div>
+        <div class="row">
+          <label>Icono</label>
+          <input type="text" id="emoteIcon" placeholder="Ej: 🕺 o icono.png">
+        </div>
+        <div class="row" id="specialRow" style="display: flex; align-items: center; gap: 8px; margin-bottom: 8px;">
+          <label for="emoteSpecial" style="cursor: pointer; flex: 1; min-width: auto; font-size: 10px; text-transform: uppercase;">¿Es Especial?</label>
+          <input type="checkbox" id="emoteSpecial" style="width: 16px; height: 16px; cursor: pointer; flex: 0;">
+        </div>
+        <div class="row" style="margin-bottom: 8px;">
+          <label style="color: #ff4444;">Videos por personaje</label>
+          <div id="emoteCharacterVideosContainer" style="display: flex; flex-direction: column; gap: 8px; margin-top: 5px; background: rgba(0,0,0,0.25); padding: 8px; border-radius: 6px; border: 1px solid #1a1a2e; max-height: 200px; overflow-y: auto;">
+            <!-- Generado dinámicamente en JS -->
+          </div>
+        </div>
+        <div class="toggle-row" style="margin-top: 8px;">
+          <button class="btn btn-success" style="margin-top:0;" onclick="saveEmote()">Guardar</button>
+          <button class="btn btn-secondary" style="margin-top:0;" onclick="closeEmoteForm()">Cancelar</button>
+        </div>
+      </div>
+    </div>
+
+    <div class="panel">
+      <div class="panel-title">Personajes del juego</div>
+      <div id="skinsList" style="max-height: 250px; overflow-y: auto; margin-bottom: 10px; display: flex; flex-direction: column; gap: 6px; padding-right: 4px;">
+        <div style="color: #667; font-size: 10px; text-align: center; padding: 10px 0;">Cargando personajes...</div>
+      </div>
+      <button class="btn btn-secondary" onclick="openSkinForm()">+ Nuevo Personaje</button>
+
+      <!-- Formulario de Personaje -->
+      <div id="skinForm" style="display: none; border-top: 1px solid #1a1a2e; margin-top: 10px; padding-top: 10px;">
+        <h3 style="font-size: 10px; text-transform: uppercase; color: #ff4444; margin-bottom: 8px;" id="skinFormTitle">Nuevo Personaje</h3>
+        <input type="hidden" id="skinEditIndex" value="">
+        <div class="row">
+          <label>Nombre</label>
+          <input type="text" id="skinName" placeholder="Ej: Soldado Gato">
+        </div>
+        <div class="row">
+          <label>Icono</label>
+          <input type="text" id="skinIcon" placeholder="Ej: 🐱 o icono.png">
+        </div>
+        <div class="row">
+          <label>Imagen</label>
+          <input type="text" id="skinImageInput" placeholder="Ej: skin1.png o URL">
+        </div>
+        <div class="row">
+          <label>Frase (Audio)</label>
+          <input type="text" id="skinAudioInput" placeholder="Ej: frase.mp3 o URL">
+        </div>
+        <div class="toggle-row" style="margin-top: 8px;">
+          <button class="btn btn-success" style="margin-top:0;" onclick="saveSkin()">Guardar</button>
+          <button class="btn btn-secondary" style="margin-top:0;" onclick="closeSkinForm()">Cancelar</button>
+        </div>
+
+      </div>
+    </div>
+
+    <div id="statusBar">
+      <span id="statusText">Listo</span>
+      <span id="blockCountStatus">0 bloques</span>
+    </div>
+  </div>
+
+  <div id="editorArea">
+    <div id="lockOverlay">
+      <p>Click para editar</p>
+      <p class="sub">WASD mover · Mouse mirar · Click izq: poner · Click der: quitar</p>
+    </div>
+    <div id="crosshair">+</div>
+    <div id="ghostInfo">Listo</div>
+    <div id="editorHud">
+      <span>Izq</span> Colocar · <span>Der</span> Eliminar · <span>Scroll</span> Distancia · <span>ESC</span> Soltar
+      mouse
+    </div>
+  </div>
+
+  <script type="module">
+    import * as THREE from "https://cdn.jsdelivr.net/npm/three@0.160/build/three.module.js";
+    import { initializeApp } from 'https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js';
+    import { getDatabase, ref, set, get }
+      from 'https://www.gstatic.com/firebasejs/10.7.1/firebase-database.js';
+
+    const FB_CONFIG = {
+      apiKey: "AIzaSyCw0v9mVUpOO8HYYfHLhyzkgIMfoBljJcQ",
+      authDomain: "fortnite-8012b.firebaseapp.com",
+      databaseURL: "https://fortnite-8012b-default-rtdb.firebaseio.com",
+      projectId: "fortnite-8012b",
+      storageBucket: "fortnite-8012b.firebasestorage.app",
+      messagingSenderId: "862924450554",
+      appId: "1:862924450554:web:b01ab7f85afa7965c2f743"
+    };
+    const fbApp = initializeApp(FB_CONFIG);
+    const db = getDatabase(fbApp);
+
+    /* ═══════ COLOR PRESETS ═══════ */
+    const COLORS = [
+      '#cc4444', '#44cc44', '#4444cc', '#cccc44', '#cc44cc', '#44cccc',
+      '#ff8800', '#8844ff', '#ff4488', '#888888', '#cccccc', '#333333',
+      '#aa6633', '#336699', '#669933', '#993366'
+    ];
+    const colorBox = document.getElementById('colorPresets');
+    COLORS.forEach(c => {
+      const el = document.createElement('div');
+      el.className = 'cpre';
+      el.style.background = c;
+      el.addEventListener('click', () => {
+        document.getElementById('blockColor').value = c;
+        colorBox.querySelectorAll('.cpre').forEach(e => e.classList.remove('active'));
+        el.classList.add('active');
+      });
+      colorBox.appendChild(el);
+    });
+
+    /* ═══════ STATE ═══════ */
+    let floorW = 100, floorD = 100, floorColor = 0x4f9a45;
+    const blocks = []; // {mesh, data:{x,z,w,h,d,color}}
+    let placeDist = 12; // how far ahead to place
+    let placeMode = 'free'; // 'snap' or 'free'
+
+    window.setPlaceMode = function (mode) {
+      placeMode = mode;
+      document.getElementById('modeSnap').classList.toggle('active', mode === 'snap');
+      document.getElementById('modeFree').classList.toggle('active', mode === 'free');
+    };
+
+    /* ═══════ THREE.JS SETUP ═══════ */
+    const area = document.getElementById('editorArea');
+    const W = area.clientWidth, H = area.clientHeight;
+
+    const scene = new THREE.Scene();
+    scene.background = new THREE.Color(0x6db6ff);
+    // scene.fog = new THREE.Fog(0x6db6ff, 30, 200);
+
+    const camera = new THREE.PerspectiveCamera(75, W / H, 0.1, 1000);
+    camera.position.set(0, 5, 10);
+
+    const renderer = new THREE.WebGLRenderer({ antialias: true });
+    renderer.setSize(W, H);
+    renderer.setPixelRatio(window.devicePixelRatio);
+    area.prepend(renderer.domElement);
+
+    // Lights
+    const sun = new THREE.DirectionalLight(0xffffff, 2);
+    sun.position.set(5, 20, 5);
+    scene.add(sun);
+    scene.add(new THREE.AmbientLight(0xffffff, 0.8));
+
+    // Floor
+    let floorMesh;
+    function makeFloor() {
+      if (floorMesh) scene.remove(floorMesh);
+      floorMesh = new THREE.Mesh(
+        new THREE.PlaneGeometry(floorW, floorD),
+        new THREE.MeshPhongMaterial({ color: floorColor })
+      );
+      floorMesh.rotation.x = -Math.PI / 2;
+      floorMesh.position.y = -2;
+      scene.add(floorMesh);
+
+      // Grid helper on top of floor
+      if (window._gridHelper) scene.remove(window._gridHelper);
+      const gridSize = Math.max(floorW, floorD);
+      const gridDiv = gridSize / 2;
+      window._gridHelper = new THREE.GridHelper(gridSize, gridDiv, 0x444444, 0x222222);
+      window._gridHelper.position.y = -1.99;
+      scene.add(window._gridHelper);
+    }
+    makeFloor();
+
+    // Ghost block (preview)
+    const ghostMat = new THREE.MeshPhongMaterial({
+      color: 0xffffff, transparent: true, opacity: 0.35,
+      side: THREE.DoubleSide
+    });
+    let ghostMesh = new THREE.Mesh(new THREE.BoxGeometry(2, 2, 2), ghostMat);
+    ghostMesh.visible = false;
+    scene.add(ghostMesh);
+
+    window.onBlockTypeChange = function() {
+      const type = document.getElementById('blockType').value;
+      const colorInput = document.getElementById('blockColor');
+      const colorPresets = document.getElementById('colorPresets');
+      const collisionRow = document.getElementById('collisionRow');
+      
+      if (type === 'spawn_red') {
+        colorInput.value = '#ff4444';
+        colorInput.disabled = true;
+        colorPresets.style.pointerEvents = 'none';
+        colorPresets.style.opacity = '0.5';
+        collisionRow.style.opacity = '0.5';
+        collisionRow.style.pointerEvents = 'none';
+        document.getElementById('blockCollision').checked = false;
+      } else if (type === 'spawn_blue') {
+        colorInput.value = '#4444ff';
+        colorInput.disabled = true;
+        colorPresets.style.pointerEvents = 'none';
+        colorPresets.style.opacity = '0.5';
+        collisionRow.style.opacity = '0.5';
+        collisionRow.style.pointerEvents = 'none';
+        document.getElementById('blockCollision').checked = false;
+      } else if (type === 'plane_start') {
+        colorInput.value = '#ffaa00';
+        colorInput.disabled = true;
+        colorPresets.style.pointerEvents = 'none';
+        colorPresets.style.opacity = '0.5';
+        collisionRow.style.opacity = '0.5';
+        collisionRow.style.pointerEvents = 'none';
+        document.getElementById('blockCollision').checked = false;
+      } else if (type === 'plane_end') {
+        colorInput.value = '#00ffff';
+        colorInput.disabled = true;
+        colorPresets.style.pointerEvents = 'none';
+        colorPresets.style.opacity = '0.5';
+        collisionRow.style.opacity = '0.5';
+        collisionRow.style.pointerEvents = 'none';
+        document.getElementById('blockCollision').checked = false;
+      } else if (type === 'airdrop_spawn') {
+        colorInput.value = '#ffe600';
+        colorInput.disabled = true;
+        colorPresets.style.pointerEvents = 'none';
+        colorPresets.style.opacity = '0.5';
+        collisionRow.style.opacity = '0.5';
+        collisionRow.style.pointerEvents = 'none';
+        document.getElementById('blockCollision').checked = false;
+      } else {
+        colorInput.disabled = false;
+        colorPresets.style.pointerEvents = 'auto';
+        colorPresets.style.opacity = '1.0';
+        collisionRow.style.opacity = '1.0';
+        collisionRow.style.pointerEvents = 'auto';
+        document.getElementById('blockCollision').checked = true;
+      }
+      updateGhost();
+    };
+
+    function updateGhost() {
+      const bw = parseInt(document.getElementById('blockW').value) || 2;
+      const bh = parseInt(document.getElementById('blockH').value) || 2;
+      const bd = parseInt(document.getElementById('blockD').value) || 2;
+      const type = document.getElementById('blockType')?.value || 'block';
+      const solid = document.getElementById('blockCollision')?.checked !== false;
+      let col = document.getElementById('blockColor').value;
+      if (type === 'spawn_red') col = '#ff4444';
+      if (type === 'spawn_blue') col = '#4444ff';
+      if (type === 'plane_start') col = '#ffaa00';
+      if (type === 'plane_end') col = '#00ffff';
+      if (type === 'airdrop_spawn') col = '#ffe600';
+
+      scene.remove(ghostMesh);
+      const opacity = type !== 'block' ? 0.35 : (solid ? 0.35 : 0.18);
+      ghostMesh = new THREE.Mesh(
+        new THREE.BoxGeometry(bw, bh, bd),
+        new THREE.MeshPhongMaterial({
+          color: new THREE.Color(col),
+          transparent: true, opacity: opacity,
+          side: THREE.DoubleSide
+        })
+      );
+      // Wireframe overlay
+      const wire = new THREE.LineSegments(
+        new THREE.EdgesGeometry(new THREE.BoxGeometry(bw, bh, bd)),
+        new THREE.LineBasicMaterial({ color: 0xffffff, transparent: true, opacity: 0.5 })
+      );
+      ghostMesh.add(wire);
+      ghostMesh.visible = false;
+      scene.add(ghostMesh);
+    }
+    updateGhost();
+
+    // Listen for block parameter changes
+    ['blockW', 'blockH', 'blockD', 'blockColor', 'blockCollision'].forEach(id => {
+      document.getElementById(id).addEventListener('change', updateGhost);
+      document.getElementById(id).addEventListener('input', updateGhost);
+    });
+
+    /* ═══════ RAYCASTER ═══════ */
+    const raycaster = new THREE.Raycaster();
+    const center = new THREE.Vector2(0, 0);
+
+    function getPlacePosition() {
+      raycaster.setFromCamera(center, camera);
+      raycaster.far = placeDist + 5;
+
+      // Collect all meshes to test against (floor + blocks)
+      const targets = [floorMesh, ...blocks.map(b => b.mesh)];
+      const hits = raycaster.intersectObjects(targets, false);
+
+      if (hits.length > 0) {
+        const hit = hits[0];
+        const normal = hit.face.normal.clone();
+        // Transform normal to world space
+        normal.transformDirection(hit.object.matrixWorld);
+
+        const bw = parseInt(document.getElementById('blockW').value) || 2;
+        const bh = parseInt(document.getElementById('blockH').value) || 2;
+        const bd = parseInt(document.getElementById('blockD').value) || 2;
+
+        // Use unscaled normal for direction checks, scaled offset for position
+        const nx = normal.x, ny = normal.y, nz = normal.z;
+
+        let px, py, pz;
+
+        if (Math.abs(ny) > 0.5) {
+          // Hit horizontal surface (floor or top/bottom of block)
+          px = Math.round(hit.point.x);
+          py = hit.point.y + (ny > 0 ? bh / 2 : -bh / 2);
+          pz = Math.round(hit.point.z);
+        } else if (Math.abs(nx) > 0.5) {
+          // Hit X-facing side
+          px = hit.point.x + (nx > 0 ? bw / 2 : -bw / 2);
+          py = Math.round(hit.point.y);
+          pz = Math.round(hit.point.z);
+        } else {
+          // Hit Z-facing side
+          px = Math.round(hit.point.x);
+          py = Math.round(hit.point.y);
+          pz = hit.point.z + (nz > 0 ? bd / 2 : -bd / 2);
+        }
+
+        // Round to snap to grid
+        px = Math.round(px);
+        py = Math.round(py);
+        pz = Math.round(pz);
+
+        return { x: px, y: py, z: pz, valid: true };
+      }
+
+      // Fallback: place in front of camera at placeDist (only in free mode)
+      if (placeMode === 'free') {
+        const dir = new THREE.Vector3();
+        camera.getWorldDirection(dir);
+        const pos = camera.position.clone().add(dir.multiplyScalar(placeDist));
+        return {
+          x: pos.x,
+          y: pos.y,
+          z: pos.z,
+          valid: true
+        };
+      }
+
+      // Snap mode: no surface hit = can't place
+      return { x: 0, y: 0, z: 0, valid: false };
+    }
+
+    function getRemoveTarget() {
+      raycaster.setFromCamera(center, camera);
+      raycaster.far = placeDist + 10;
+      const meshes = blocks.map(b => b.mesh);
+      const hits = raycaster.intersectObjects(meshes, false);
+      if (hits.length > 0) {
+        const idx = blocks.findIndex(b => b.mesh === hits[0].object);
+        return idx;
+      }
+      return -1;
+    }
+
+    /* ═══════ PLACE / REMOVE ═══════ */
+    function placeBlock() {
+      const pos = getPlacePosition();
+      if (!pos.valid) return;
+
+      const bw = parseInt(document.getElementById('blockW').value) || 2;
+      const bh = parseInt(document.getElementById('blockH').value) || 2;
+      const bd = parseInt(document.getElementById('blockD').value) || 2;
+      const type = document.getElementById('blockType').value || 'block';
+      const solid = document.getElementById('blockCollision').checked;
+      let col = document.getElementById('blockColor').value;
+      if (type === 'spawn_red') col = '#ff4444';
+      if (type === 'spawn_blue') col = '#4444ff';
+      if (type === 'plane_start') col = '#ffaa00';
+      if (type === 'plane_end') col = '#00ffff';
+      if (type === 'airdrop_spawn') col = '#ffe600';
+
+      const geo = new THREE.BoxGeometry(bw, bh, bd);
+      let mat;
+      if (type === 'spawn_red') {
+        mat = new THREE.MeshPhongMaterial({ color: 0xff4444, transparent: true, opacity: 0.6 });
+      } else if (type === 'spawn_blue') {
+        mat = new THREE.MeshPhongMaterial({ color: 0x4444ff, transparent: true, opacity: 0.6 });
+      } else if (type === 'plane_start') {
+        mat = new THREE.MeshPhongMaterial({ color: 0xffaa00, transparent: true, opacity: 0.6 });
+      } else if (type === 'plane_end') {
+        mat = new THREE.MeshPhongMaterial({ color: 0x00ffff, transparent: true, opacity: 0.6 });
+      } else if (type === 'airdrop_spawn') {
+        mat = new THREE.MeshPhongMaterial({ color: 0xffe600, transparent: true, opacity: 0.6 });
+      } else {
+        mat = new THREE.MeshPhongMaterial({
+          color: new THREE.Color(col),
+          transparent: !solid,
+          opacity: solid ? 1.0 : 0.6
+        });
+      }
+      const mesh = new THREE.Mesh(geo, mat);
+
+      // Add edge wireframe for visibility
+      const edges = new THREE.LineSegments(
+        new THREE.EdgesGeometry(geo),
+        new THREE.LineBasicMaterial({ color: 0x000000, transparent: true, opacity: 0.15 })
+      );
+      mesh.add(edges);
+
+      mesh.position.set(pos.x, pos.y, pos.z);
+      scene.add(mesh);
+
+      const data = {
+        x: pos.x, y: pos.y, z: pos.z,
+        w: bw, h: bh, d: bd,
+        color: col,
+        type: type,
+        collision: type === 'block' ? solid : false
+      };
+      blocks.push({ mesh, data });
+      updateCount();
+      setStatus(`Bloque en (${pos.x}, ${pos.y}, ${pos.z})`);
+    }
+
+    function removeBlock(idx) {
+      if (idx < 0 || idx >= blocks.length) return;
+      scene.remove(blocks[idx].mesh);
+      blocks[idx].mesh.geometry.dispose();
+      blocks[idx].mesh.material.dispose();
+      blocks.splice(idx, 1);
+      updateCount();
+      setStatus('Bloque eliminado');
+    }
+
+    function updateCount() {
+      document.getElementById('blockCount').textContent = blocks.length;
+      document.getElementById('blockCountStatus').textContent = blocks.length + ' bloques';
+    }
+
+    /* ═══════ CONTROLS ═══════ */
+    let yaw = 0, pitch = 0;
+    const keys = {};
+    const locked = () => document.pointerLockElement === area;
+
+    const lockOverlay = document.getElementById('lockOverlay');
+    area.addEventListener('click', () => area.requestPointerLock());
+    document.addEventListener('pointerlockchange', () => {
+      lockOverlay.style.display = locked() ? 'none' : 'flex';
+    });
+
+    document.addEventListener('mousemove', e => {
+      if (!locked()) return;
+      yaw -= e.movementX * 0.002;
+      pitch -= e.movementY * 0.002;
+      pitch = Math.max(-Math.PI / 2, Math.min(Math.PI / 2, pitch));
+    });
+
+    window.addEventListener('keydown', e => {
+      keys[e.key.toLowerCase()] = true;
+      if (e.key === ' ') e.preventDefault();
+    });
+    window.addEventListener('keyup', e => { keys[e.key.toLowerCase()] = false; });
+    window.addEventListener('contextmenu', e => e.preventDefault());
+
+    // Mouse buttons
+    window.addEventListener('mousedown', e => {
+      if (!locked()) return;
+      if (e.button === 0) placeBlock();
+      if (e.button === 2) {
+        const idx = getRemoveTarget();
+        if (idx >= 0) removeBlock(idx);
+      }
+    });
+
+    // Scroll to change place distance
+    window.addEventListener('wheel', e => {
+      if (!locked()) return;
+      placeDist = Math.max(3, Math.min(40, placeDist + (e.deltaY > 0 ? -1 : 1)));
+    });
+
+    /* ═══════ MOVEMENT ═══════ */
+    let velY = 0, onGround = true;
+
+    function movePlayer() {
+      if (!locked()) return;
+      const sprint = keys['shift'];
+      const speed = sprint ? 0.3 : 0.15;
+
+      const fwd = new THREE.Vector3(Math.sin(yaw), 0, Math.cos(yaw));
+      const rgt = new THREE.Vector3(Math.sin(yaw - Math.PI / 2), 0, Math.cos(yaw - Math.PI / 2));
+
+      if (keys['w']) { camera.position.x -= fwd.x * speed; camera.position.z -= fwd.z * speed; }
+      if (keys['s']) { camera.position.x += fwd.x * speed; camera.position.z += fwd.z * speed; }
+      if (keys['a']) { camera.position.x += rgt.x * speed; camera.position.z += rgt.z * speed; }
+      if (keys['d']) { camera.position.x -= rgt.x * speed; camera.position.z -= rgt.z * speed; }
+
+      // Fly mode with space/ctrl
+      if (keys[' ']) camera.position.y += speed;
+      if (keys['control']) camera.position.y -= speed;
+
+      // Gravity optional (fly mode — no gravity in editor)
+    }
+
+    /* ═══════ GHOST UPDATE ═══════ */
+    function updateGhostPosition() {
+      if (!locked()) { ghostMesh.visible = false; return; }
+
+      const pos = getPlacePosition();
+      if (pos.valid) {
+        ghostMesh.position.set(pos.x, pos.y, pos.z);
+        ghostMesh.visible = true;
+
+        document.getElementById('ghostInfo').textContent =
+          `Pos: (${pos.x.toFixed(1)}, ${pos.y.toFixed(1)}, ${pos.z.toFixed(1)}) · Dist: ${placeDist.toFixed(0)} · ${placeMode === 'snap' ? '📐 SNAP' : '🔓 LIBRE'}`;
+      } else {
+        ghostMesh.visible = false;
+      }
+    }
+
+    /* ═══════ ANIMATE ═══════ */
+    function animate() {
+      requestAnimationFrame(animate);
+      movePlayer();
+
+      camera.rotation.order = 'YXZ';
+      camera.rotation.y = yaw;
+      camera.rotation.x = pitch;
+
+      updateGhostPosition();
+      renderer.render(scene, camera);
+    }
+    animate();
+
+    /* ═══════ RESIZE ═══════ */
+    window.addEventListener('resize', () => {
+      const w = area.clientWidth, h = area.clientHeight;
+      camera.aspect = w / h;
+      camera.updateProjectionMatrix();
+      renderer.setSize(w, h);
+    });
+
+    /* ═══════ FLOOR CONTROLS ═══════ */
+    window.applyFloor = function () {
+      floorW = parseInt(document.getElementById('floorW').value) || 100;
+      floorD = parseInt(document.getElementById('floorD').value) || 100;
+      const hex = document.getElementById('floorColor').value;
+      floorColor = parseInt('0x' + hex.slice(1));
+      updateFloorPresetsUI(floorW, floorD);
+      makeFloor();
+      setStatus('Piso actualizado: ' + floorW + '×' + floorD, true);
+    };
+
+    document.getElementById('floorPresets').addEventListener('click', e => {
+      const btn = e.target.closest('.preset-btn');
+      if (!btn) return;
+      const w = parseInt(btn.dataset.w), d = parseInt(btn.dataset.d);
+      document.getElementById('floorW').value = w;
+      document.getElementById('floorD').value = d;
+      document.querySelectorAll('.preset-btn').forEach(b => b.classList.remove('active'));
+      btn.classList.add('active');
+      floorW = w; floorD = d;
+      makeFloor();
+    });
+
+    /* ═══════ ACTIONS ═══════ */
+    window.undoLast = function () {
+      if (blocks.length === 0) return;
+      removeBlock(blocks.length - 1);
+    };
+
+    window.clearAll = function () {
+      if (blocks.length === 0) return;
+      if (!confirm('¿Eliminar todos los ' + blocks.length + ' bloques?')) return;
+      while (blocks.length > 0) removeBlock(blocks.length - 1);
+      setStatus('Mapa limpiado', true);
+    };
+
+    window.publishMap = function () {
+      const mapData = {
+        floor: {
+          w: floorW,
+          d: floorD,
+          color: '0x' + floorColor.toString(16).padStart(6, '0')
+        },
+        blocks: {}
+      };
+      blocks.forEach((b, i) => {
+        const d = b.data;
+        mapData.blocks['b' + i] = {
+          x: d.x, z: d.z,
+          w: d.w, h: d.h, d: d.d,
+          y: d.y,
+          color: '0x' + d.color.slice(1),
+          type: d.type || 'block',
+          collision: d.collision !== false
+        };
+      });
+      set(ref(db, 'fps/map_' + activeMapMode), mapData).then(() => {
+        setStatus('✅ Mapa publicado (' + activeMapMode.toUpperCase() + ') — ' + blocks.length + ' bloques!', true);
+      }).catch(err => {
+        setStatus('❌ Error: ' + err.message);
+      });
+    };
+
+    window.exportJSON = function () {
+      const data = {
+        floorW, floorD,
+        floorColor: '#' + floorColor.toString(16).padStart(6, '0'),
+        blocks: blocks.map(b => b.data)
+      };
+      const json = JSON.stringify(data, null, 2);
+      navigator.clipboard.writeText(json).then(() => {
+        setStatus('📋 JSON copiado al portapapeles', true);
+      });
+    };
+
+    window.importJSON = function () {
+      const json = prompt('Pega el JSON del mapa:');
+      if (!json) return;
+      try {
+        const data = JSON.parse(json);
+        // Clear current
+        while (blocks.length > 0) removeBlock(blocks.length - 1);
+
+        floorW = data.floorW || 100;
+        floorD = data.floorD || 100;
+        if (data.floorColor) {
+          floorColor = parseInt('0x' + data.floorColor.slice(1));
+          document.getElementById('floorColor').value = data.floorColor;
+        }
+        document.getElementById('floorW').value = floorW;
+        document.getElementById('floorD').value = floorD;
+        makeFloor();
+
+        // Rebuild blocks
+        (data.blocks || []).forEach(d => {
+          if (!d.type) d.type = 'block';
+          const btype = d.type;
+          const solid = d.collision !== false;
+          const geo = new THREE.BoxGeometry(d.w, d.h, d.d);
+          let mat;
+          if (btype === 'spawn_red') {
+            mat = new THREE.MeshPhongMaterial({ color: 0xff4444, transparent: true, opacity: 0.6 });
+          } else if (btype === 'spawn_blue') {
+            mat = new THREE.MeshPhongMaterial({ color: 0x4444ff, transparent: true, opacity: 0.6 });
+          } else if (btype === 'plane_start') {
+            mat = new THREE.MeshPhongMaterial({ color: 0xffaa00, transparent: true, opacity: 0.6 });
+          } else if (btype === 'plane_end') {
+            mat = new THREE.MeshPhongMaterial({ color: 0x00ffff, transparent: true, opacity: 0.6 });
+          } else if (btype === 'airdrop_spawn') {
+            mat = new THREE.MeshPhongMaterial({ color: 0xffe600, transparent: true, opacity: 0.6 });
+          } else {
+            mat = new THREE.MeshPhongMaterial({
+              color: new THREE.Color(d.color),
+              transparent: !solid,
+              opacity: solid ? 1.0 : 0.6
+            });
+          }
+          const mesh = new THREE.Mesh(geo, mat);
+          const edges = new THREE.LineSegments(
+            new THREE.EdgesGeometry(geo),
+            new THREE.LineBasicMaterial({ color: 0x000000, transparent: true, opacity: 0.15 })
+          );
+          mesh.add(edges);
+          mesh.position.set(d.x, d.y, d.z);
+          scene.add(mesh);
+          blocks.push({ mesh, data: d });
+        });
+        updateCount();
+        setStatus('📥 Mapa importado — ' + blocks.length + ' bloques', true);
+      } catch (e) {
+        setStatus('❌ JSON inválido');
+      }
+    };
+
+    /* ═══════ STATUS ═══════ */
+    function setStatus(msg, ok) {
+      const el = document.getElementById('statusText');
+      el.textContent = msg;
+      el.className = ok ? 'status-ok' : '';
+      if (ok) setTimeout(() => { el.textContent = 'Listo'; el.className = ''; }, 3000);
+    }
+
+    // Sync UI presets active class with actual floor dimensions
+    function updateFloorPresetsUI(w, d) {
+      document.querySelectorAll('#floorPresets .preset-btn').forEach(btn => {
+        const btnW = parseInt(btn.dataset.w);
+        const btnD = parseInt(btn.dataset.d);
+        if (btnW === w && btnD === d) {
+          btn.classList.add('active');
+        } else {
+          btn.classList.remove('active');
+        }
+      });
+    }
+
+    // Active map mode state and controller
+    let activeMapMode = 'normal';
+    window.setMapMode = function (mode) {
+      if (mode === activeMapMode) return;
+      activeMapMode = mode;
+      document.getElementById('mapModeNormal').classList.toggle('active', mode === 'normal');
+      document.getElementById('mapModeBR').classList.toggle('active', mode === 'br');
+      document.getElementById('mapModeLobby').classList.toggle('active', mode === 'lobby');
+      document.getElementById('mapModeRvB').classList.toggle('active', mode === 'rvb');
+      loadMapFromFirebase();
+    };
+
+    // Load from Firebase on start
+    window.loadMapFromFirebase = function () {
+      setStatus('Cargando mapa ' + activeMapMode.toUpperCase() + ' desde Firebase...');
+      get(ref(db, 'fps/map_' + activeMapMode)).then(snap => {
+        if (!snap.exists()) {
+          // Reset to default empty map state
+          while (blocks.length > 0) {
+            const idx = blocks.length - 1;
+            scene.remove(blocks[idx].mesh);
+            blocks[idx].mesh.geometry.dispose();
+            blocks[idx].mesh.material.dispose();
+            blocks.pop();
+          }
+          floorW = 100;
+          floorD = 100;
+          floorColor = 0x4f9a45;
+          document.getElementById('floorColor').value = '#4f9a45';
+          document.getElementById('floorW').value = floorW;
+          document.getElementById('floorD').value = floorD;
+          updateFloorPresetsUI(100, 100);
+          makeFloor();
+          updateCount();
+          setStatus('No hay mapa ' + activeMapMode.toUpperCase() + ' en Firebase. Creado mapa vacío.', true);
+          return;
+        }
+        const mapData = snap.val();
+
+        // Clear existing blocks
+        while (blocks.length > 0) {
+          const idx = blocks.length - 1;
+          scene.remove(blocks[idx].mesh);
+          blocks[idx].mesh.geometry.dispose();
+          blocks[idx].mesh.material.dispose();
+          blocks.pop();
+        }
+
+        // Load floor
+        if (mapData.floor) {
+          floorW = parseInt(mapData.floor.w) || 100;
+          floorD = parseInt(mapData.floor.d) || 100;
+          if (mapData.floor.color) {
+            floorColor = parseInt(mapData.floor.color);
+            const hexStr = '#' + floorColor.toString(16).padStart(6, '0');
+            document.getElementById('floorColor').value = hexStr;
+          }
+        } else {
+          // Fallback to default if floor is missing from existing map
+          floorW = 100;
+          floorD = 100;
+          floorColor = 0x4f9a45;
+          document.getElementById('floorColor').value = '#4f9a45';
+        }
+        document.getElementById('floorW').value = floorW;
+        document.getElementById('floorD').value = floorD;
+        updateFloorPresetsUI(floorW, floorD);
+        makeFloor();
+
+        // Load blocks
+        if (mapData.blocks) {
+          Object.values(mapData.blocks).forEach(b => {
+            const bw = b.w || 2;
+            const bh = b.h || 2;
+            const bd = b.d || 2;
+            const bx = b.x || 0;
+            const bz = b.z || 0;
+            const by = b.y != null ? b.y : (bh / 2 - 2);
+            const btype = b.type || 'block';
+            const solid = b.collision !== false;
+
+            let colStr = '#888888';
+            if (b.color != null) {
+              if (typeof b.color === 'string') {
+                if (b.color.startsWith('0x')) {
+                  colStr = '#' + b.color.slice(2).padStart(6, '0');
+                } else {
+                  colStr = b.color;
+                }
+              } else {
+                colStr = '#' + b.color.toString(16).padStart(6, '0');
+              }
+            }
+
+            const geo = new THREE.BoxGeometry(bw, bh, bd);
+            let mat;
+             if (btype === 'spawn_red') {
+              mat = new THREE.MeshPhongMaterial({ color: 0xff4444, transparent: true, opacity: 0.6 });
+            } else if (btype === 'spawn_blue') {
+              mat = new THREE.MeshPhongMaterial({ color: 0x4444ff, transparent: true, opacity: 0.6 });
+            } else if (btype === 'plane_start') {
+              mat = new THREE.MeshPhongMaterial({ color: 0xffaa00, transparent: true, opacity: 0.6 });
+            } else if (btype === 'plane_end') {
+              mat = new THREE.MeshPhongMaterial({ color: 0x00ffff, transparent: true, opacity: 0.6 });
+            } else if (btype === 'airdrop_spawn') {
+              mat = new THREE.MeshPhongMaterial({ color: 0xffe600, transparent: true, opacity: 0.6 });
+            } else {
+              mat = new THREE.MeshPhongMaterial({
+                color: new THREE.Color(colStr),
+                transparent: !solid,
+                opacity: solid ? 1.0 : 0.6
+              });
+            }
+            const mesh = new THREE.Mesh(geo, mat);
+            const edges = new THREE.LineSegments(
+              new THREE.EdgesGeometry(geo),
+              new THREE.LineBasicMaterial({ color: 0x000000, transparent: true, opacity: 0.15 })
+            );
+            mesh.add(edges);
+            mesh.position.set(bx, by, bz);
+            scene.add(mesh);
+
+            blocks.push({
+              mesh,
+              data: {
+                x: bx, y: by, z: bz,
+                w: bw, h: bh, d: bd,
+                color: colStr,
+                type: btype,
+                collision: solid
+              }
+            });
+          });
+        }
+        updateCount();
+        setStatus('✅ Mapa ' + activeMapMode.toUpperCase() + ' cargado de Firebase', true);
+      }).catch(err => {
+        setStatus('❌ Error al cargar: ' + err.message);
+      });
+    };
+
+    /* ═══════ EMOTES SYSTEM LOGIC ═══════ */
+    let EMOTES = [];
+
+    function resolveEmoteUrl(url) {
+      if (!url) return '';
+      if (url.startsWith('http://') || url.startsWith('https://')) return url;
+      return 'https://raw.githubusercontent.com/yoyoyogogo/png/main/' + url;
+    }
+
+    window.loadEmotes = function() {
+      get(ref(db, 'fps/emotes')).then(snap => {
+        let list = [];
+        if (snap.exists()) {
+          const val = snap.val();
+          if (val) {
+            if (Array.isArray(val)) {
+              list = val.filter(Boolean);
+            } else if (typeof val === 'object') {
+              list = Object.values(val);
+            }
+          }
+        }
+        EMOTES = list;
+        renderEmotes();
+      }).catch(err => {
+        console.error("Error cargando emotes:", err);
+        document.getElementById('emotesList').innerHTML = `<div style="color: #ff4444; font-size: 10px; text-align: center; padding: 10px 0;">Error al cargar</div>`;
+      });
+    };
+
+    function renderEmotes() {
+      const container = document.getElementById('emotesList');
+      if (EMOTES.length === 0) {
+        container.innerHTML = `<div style="color: #667; font-size: 10px; text-align: center; padding: 10px 0;">No hay emotes creados</div>`;
+        return;
+      }
+      container.innerHTML = '';
+      
+      const normalEmotes = [];
+      const specialEmotes = [];
+      
+      EMOTES.forEach((emote, index) => {
+        const item = document.createElement('div');
+        item.className = 'emote-item';
+
+        const isImageUrl = emote.icon && (emote.icon.includes('.') || emote.icon.startsWith('http'));
+        let iconHtml = '';
+        if (isImageUrl) {
+          iconHtml = `<img src="${resolveEmoteUrl(emote.icon)}" alt="icon" onerror="this.src='data:image/svg+xml;utf8,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 24 24%22 width=%2224%22 height=%2224%22><text y=%2220%22 font-size=%2220%22>❓</text></svg>'">`;
+        } else {
+          iconHtml = emote.icon || '❓';
+        }
+
+        const count = emote.characterVideos ? Object.keys(emote.characterVideos).length : 0;
+        const countJoin = emote.characterVideosJoin ? Object.keys(emote.characterVideosJoin).length : 0;
+        let videoDesc = count > 0 
+          ? `1°: ${Object.keys(emote.characterVideos).join(', ')}` 
+          : (emote.video ? `Default (${emote.video})` : 'Sin videos');
+        if (countJoin > 0) {
+          videoDesc += ` | 2°: ${Object.keys(emote.characterVideosJoin).join(', ')}`;
+        }
+
+        item.innerHTML = `
+          <div class="emote-item-icon">${iconHtml}</div>
+          <div class="emote-item-info">
+            <div class="emote-item-name">${emote.name || 'Sin nombre'}</div>
+            <div class="emote-item-video" style="font-size: 8px; color: #889; line-height: 1.2;">${videoDesc}</div>
+          </div>
+          <div class="emote-item-actions">
+            <button class="emote-btn-icon" onclick="openEmoteForm(${index})" title="Editar">✏️</button>
+            <button class="emote-btn-icon" onclick="deleteEmote(${index})" title="Eliminar">🗑️</button>
+          </div>
+        `;
+        
+        if (emote.special) {
+          specialEmotes.push(item);
+        } else {
+          normalEmotes.push(item);
+        }
+      });
+      
+      if (normalEmotes.length > 0) {
+        const titleNormal = document.createElement('div');
+        titleNormal.style.cssText = 'color: #ff4444; font-size: 9px; font-weight: bold; letter-spacing: 2px; text-transform: uppercase; margin-top: 4px; margin-bottom: 6px; display: flex; align-items: center; gap: 4px;';
+        titleNormal.innerHTML = '<span>⚔️</span> Emotes Normales';
+        container.appendChild(titleNormal);
+        normalEmotes.forEach(el => container.appendChild(el));
+      }
+      
+      if (specialEmotes.length > 0) {
+        const titleSpecial = document.createElement('div');
+        titleSpecial.style.cssText = 'color: #ffe600; font-size: 9px; font-weight: bold; letter-spacing: 2px; text-transform: uppercase; margin-top: 10px; margin-bottom: 6px; display: flex; align-items: center; gap: 4px;';
+        titleSpecial.innerHTML = '<span>✨</span> Emotes Especiales';
+        container.appendChild(titleSpecial);
+        specialEmotes.forEach(el => container.appendChild(el));
+      }
+    }
+
+    window.openEmoteForm = function(index = null) {
+      const form = document.getElementById('emoteForm');
+      const title = document.getElementById('emoteFormTitle');
+      const nameInput = document.getElementById('emoteName');
+      const iconInput = document.getElementById('emoteIcon');
+      const specialInput = document.getElementById('emoteSpecial');
+      const container = document.getElementById('emoteCharacterVideosContainer');
+      const editIndex = document.getElementById('emoteEditIndex');
+
+      form.style.display = 'block';
+      
+      let activeVideos = {};
+      let activeVideosJoin = {};
+      if (index !== null) {
+        title.textContent = 'Editar Emote';
+        editIndex.value = index;
+        const emote = EMOTES[index];
+        nameInput.value = emote.name || '';
+        iconInput.value = emote.icon || '';
+        specialInput.checked = !!emote.special;
+        
+        if (emote.characterVideos) {
+          activeVideos = emote.characterVideos;
+        } else if (emote.video) {
+          // Backward compatibility: map old string video to "Default"
+          activeVideos = { "Default": emote.video };
+        }
+        
+        if (emote.characterVideosJoin) {
+          activeVideosJoin = emote.characterVideosJoin;
+        }
+      } else {
+        title.textContent = 'Nuevo Emote';
+        editIndex.value = '';
+        nameInput.value = '';
+        iconInput.value = '';
+        specialInput.checked = false;
+      }
+
+      // Generate dynamic input list for characters
+      container.innerHTML = '';
+      const allCharacters = ["Default", ...SKINS.map(s => s.name)];
+      
+      allCharacters.forEach(charName => {
+        const charIdSafe = 'char_' + charName.replace(/[^a-zA-Z0-9]/g, '_');
+        const hasVideo = activeVideos[charName] !== undefined;
+        const videoVal = activeVideos[charName] || '';
+        const videoJoinVal = activeVideosJoin[charName] || '';
+
+        const row = document.createElement('div');
+        row.style.display = 'flex';
+        row.style.flexDirection = 'column';
+        row.style.gap = '4px';
+        row.style.padding = '8px';
+        row.style.borderBottom = '1px solid #1a1a2e';
+
+        row.innerHTML = `
+          <label style="display: flex; align-items: center; gap: 6px; font-size: 10px; color: #fff; cursor: pointer; font-weight: bold;">
+            <input type="checkbox" id="${charIdSafe}_chk" ${hasVideo ? 'checked' : ''} onchange="
+              const disabled = !this.checked;
+              document.getElementById('${charIdSafe}_input').disabled = disabled;
+              document.getElementById('${charIdSafe}_join_input').disabled = disabled;
+              if (disabled) {
+                document.getElementById('${charIdSafe}_input').value = '';
+                document.getElementById('${charIdSafe}_join_input').value = '';
+              }
+            ">
+            <span>${charName}</span>
+          </label>
+          <div style="display: flex; gap: 6px; margin-top: 2px;">
+            <div style="flex: 1;">
+              <span style="font-size: 8px; color: #888; display: block; margin-bottom: 2px;">Iniciador (1°)</span>
+              <input type="text" id="${charIdSafe}_input" placeholder="Ej: baile_1.webm" value="${videoVal}" ${hasVideo ? '' : 'disabled'} style="font-size: 10px; padding: 4px 8px; width: 100%; background: rgba(255,255,255,0.02); border: 1px solid rgba(255,68,68,0.2); color: #fff; border-radius: 4px; outline: none;">
+            </div>
+            <div style="flex: 1;">
+              <span style="font-size: 8px; color: #888; display: block; margin-bottom: 2px;">Seguidor (2° - Opcional)</span>
+              <input type="text" id="${charIdSafe}_join_input" placeholder="Ej: baile_2.webm" value="${videoJoinVal}" ${hasVideo ? '' : 'disabled'} style="font-size: 10px; padding: 4px 8px; width: 100%; background: rgba(255,255,255,0.02); border: 1px solid rgba(255,68,68,0.2); color: #fff; border-radius: 4px; outline: none;">
+            </div>
+          </div>
+        `;
+        container.appendChild(row);
+      });
+
+      nameInput.focus();
+    };
+
+    window.closeEmoteForm = function() {
+      document.getElementById('emoteForm').style.display = 'none';
+      document.getElementById('emoteName').value = '';
+      document.getElementById('emoteIcon').value = '';
+      document.getElementById('emoteSpecial').checked = false;
+      document.getElementById('emoteCharacterVideosContainer').innerHTML = '';
+      document.getElementById('emoteEditIndex').value = '';
+    };
+
+    window.saveEmote = function() {
+      const name = document.getElementById('emoteName').value.trim();
+      const icon = document.getElementById('emoteIcon').value.trim();
+      const special = document.getElementById('emoteSpecial').checked;
+      const editIndexVal = document.getElementById('emoteEditIndex').value;
+
+      const allCharacters = ["Default", ...SKINS.map(s => s.name)];
+      const characterVideos = {};
+      const characterVideosJoin = {};
+      let hasAtLeastOneVideo = false;
+
+      allCharacters.forEach(charName => {
+        const charIdSafe = 'char_' + charName.replace(/[^a-zA-Z0-9]/g, '_');
+        const chk = document.getElementById(`${charIdSafe}_chk`);
+        const input = document.getElementById(`${charIdSafe}_input`);
+        const inputJoin = document.getElementById(`${charIdSafe}_join_input`);
+        
+        if (chk && chk.checked) {
+          const val = input.value.trim();
+          const valJoin = inputJoin.value.trim();
+          if (val) {
+            characterVideos[charName] = val;
+            hasAtLeastOneVideo = true;
+          }
+          if (valJoin) {
+            characterVideosJoin[charName] = valJoin;
+          }
+        }
+      });
+
+      if (!name || !icon) {
+        alert('Por favor completa el nombre y el icono.');
+        return;
+      }
+
+      if (!hasAtLeastOneVideo) {
+        alert('Por favor activa y añade al menos un video de iniciador para algún personaje.');
+        return;
+      }
+
+      const emoteData = { name, icon, special, characterVideos };
+      if (Object.keys(characterVideosJoin).length > 0) {
+        emoteData.characterVideosJoin = characterVideosJoin;
+      }
+
+      if (editIndexVal !== '') {
+        const idx = parseInt(editIndexVal);
+        EMOTES[idx] = emoteData;
+      } else {
+        EMOTES.push(emoteData);
+      }
+
+      setStatus('Guardando emote...', true);
+      set(ref(db, 'fps/emotes'), EMOTES).then(() => {
+        setStatus('✅ Emotes guardados en Firebase', true);
+        closeEmoteForm();
+        renderEmotes();
+      }).catch(err => {
+        setStatus('❌ Error al guardar emote: ' + err.message);
+      });
+    };
+
+    window.deleteEmote = function(index) {
+      if (!confirm(`¿Seguro que deseas eliminar el emote "${EMOTES[index].name}"?`)) return;
+      
+      EMOTES.splice(index, 1);
+      
+      setStatus('Eliminando emote...', true);
+      set(ref(db, 'fps/emotes'), EMOTES).then(() => {
+        setStatus('✅ Emote eliminado', true);
+        closeEmoteForm();
+        renderEmotes();
+      }).catch(err => {
+        setStatus('❌ Error al eliminar emote: ' + err.message);
+      });
+    };
+
+    /* ═══════ SKINS SYSTEM LOGIC ═══════ */
+    let SKINS = [];
+
+    function resolveSkinUrl(url) {
+      if (!url) return '';
+      if (url.startsWith('http://') || url.startsWith('https://')) return url;
+      return 'https://raw.githubusercontent.com/yoyoyogogo/png/main/' + url;
+    }
+
+    window.loadSkins = function() {
+      get(ref(db, 'fps/skins')).then(snap => {
+        let list = [];
+        if (snap.exists()) {
+          const val = snap.val();
+          if (val) {
+            if (Array.isArray(val)) {
+              list = val.filter(Boolean);
+            } else if (typeof val === 'object') {
+              list = Object.values(val);
+            }
+          }
+        }
+        SKINS = list;
+        renderSkins();
+      }).catch(err => {
+        console.error("Error cargando personajes:", err);
+        document.getElementById('skinsList').innerHTML = `<div style="color: #ff4444; font-size: 10px; text-align: center; padding: 10px 0;">Error al cargar</div>`;
+      });
+    };
+
+    function renderSkins() {
+      const container = document.getElementById('skinsList');
+      if (SKINS.length === 0) {
+        container.innerHTML = `<div style="color: #667; font-size: 10px; text-align: center; padding: 10px 0;">No hay personajes creados</div>`;
+        return;
+      }
+      container.innerHTML = '';
+      SKINS.forEach((skin, index) => {
+        const item = document.createElement('div');
+        item.className = 'emote-item';
+
+        const isImageUrl = skin.icon && (skin.icon.includes('.') || skin.icon.startsWith('http'));
+        let iconHtml = '';
+        if (isImageUrl) {
+          iconHtml = `<img src="${resolveSkinUrl(skin.icon)}" alt="icon" onerror="this.src='data:image/svg+xml;utf8,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 24 24%22 width=%2224%22 height=%2224%22><text y=%2220%22 font-size=%2220%22>❓</text></svg>'">`;
+        } else {
+          iconHtml = skin.icon || '❓';
+        }
+
+        item.innerHTML = `
+          <div class="emote-item-icon">${iconHtml}</div>
+          <div class="emote-item-info">
+            <div class="emote-item-name">${skin.name || 'Sin nombre'}</div>
+            <div class="emote-item-video">${skin.image || 'Sin imagen'}${skin.audio ? ' | 🔊 ' + skin.audio : ''}</div>
+          </div>
+          <div class="emote-item-actions">
+            <button class="emote-btn-icon" onclick="openSkinForm(${index})" title="Editar">✏️</button>
+            <button class="emote-btn-icon" onclick="deleteSkin(${index})" title="Eliminar">🗑️</button>
+          </div>
+        `;
+        container.appendChild(item);
+      });
+    }
+
+    window.openSkinForm = function(index = null) {
+      const form = document.getElementById('skinForm');
+      const title = document.getElementById('skinFormTitle');
+      const nameInput = document.getElementById('skinName');
+      const iconInput = document.getElementById('skinIcon');
+      const imageInput = document.getElementById('skinImageInput');
+      const audioInput = document.getElementById('skinAudioInput');
+      const editIndex = document.getElementById('skinEditIndex');
+
+      form.style.display = 'block';
+      if (index !== null) {
+        title.textContent = 'Editar Personaje';
+        editIndex.value = index;
+        const skin = SKINS[index];
+        nameInput.value = skin.name || '';
+        iconInput.value = skin.icon || '';
+        imageInput.value = skin.image || '';
+        audioInput.value = skin.audio || '';
+      } else {
+        title.textContent = 'Nuevo Personaje';
+        editIndex.value = '';
+        nameInput.value = '';
+        iconInput.value = '';
+        imageInput.value = '';
+        audioInput.value = '';
+      }
+      nameInput.focus();
+    };
+
+    window.closeSkinForm = function() {
+      document.getElementById('skinForm').style.display = 'none';
+      document.getElementById('skinName').value = '';
+      document.getElementById('skinIcon').value = '';
+      document.getElementById('skinImageInput').value = '';
+      document.getElementById('skinAudioInput').value = '';
+      document.getElementById('skinEditIndex').value = '';
+    };
+
+    window.saveSkin = function() {
+      const name = document.getElementById('skinName').value.trim();
+      const icon = document.getElementById('skinIcon').value.trim();
+      const image = document.getElementById('skinImageInput').value.trim();
+      const audio = document.getElementById('skinAudioInput').value.trim();
+      const editIndexVal = document.getElementById('skinEditIndex').value;
+
+      if (!name || !icon || !image) {
+        alert('Por favor completa todos los campos (nombre, icono e imagen).');
+        return;
+      }
+
+      const skinData = { name, icon, image, audio };
+
+      if (editIndexVal !== '') {
+        const idx = parseInt(editIndexVal);
+        SKINS[idx] = skinData;
+      } else {
+        SKINS.push(skinData);
+      }
+
+      setStatus('Guardando personaje...', true);
+      set(ref(db, 'fps/skins'), SKINS).then(() => {
+        setStatus('✅ Personajes guardados en Firebase', true);
+        closeSkinForm();
+        renderSkins();
+      }).catch(err => {
+        setStatus('❌ Error al guardar personaje: ' + err.message);
+      });
+    };
+
+    window.deleteSkin = function(index) {
+      if (!confirm(`¿Seguro que deseas eliminar el personaje "${SKINS[index].name}"?`)) return;
+      
+      SKINS.splice(index, 1);
+      
+      setStatus('Eliminando personaje...', true);
+      set(ref(db, 'fps/skins'), SKINS).then(() => {
+        setStatus('✅ Personaje eliminado', true);
+        closeSkinForm();
+        renderSkins();
+      }).catch(err => {
+        setStatus('❌ Error al eliminar personaje: ' + err.message);
+      });
+    };
+
+    // Auto-load on startup
+    loadMapFromFirebase();
+    loadEmotes();
+    loadSkins();
+  </script>
+</body>
+
+</html>
